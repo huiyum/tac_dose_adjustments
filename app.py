@@ -64,7 +64,7 @@ def prepare_inputs(demo_df, preprocessing_info):
     Prepare model inputs for a single patient using the same logic as PKDataset.
     """
 
-    seq_len = 5
+    seq_len = 50
 
     demo_df = demo_df.sort_values("hours_from_first_dose").copy()
 
@@ -214,9 +214,7 @@ class PKModel(nn.Module):
         last_hidden = torch.gather(hidden_states, dim=1, index=index_expanded)  # [B, 1, H]
         last_hidden = last_hidden.squeeze(1)  # [B, H]
 
-        ke_pop = 0.05776
-        eta_i = torch.nn.functional.softplus(self.hidden_to_ke(last_hidden))
-        ke = ke_pop * eta_i
+        ke = torch.nn.functional.softplus(self.hidden_to_ke(last_hidden))  # [B, 1]
         ke = ke.clamp(min=0.017, max=0.23)
         
         A = self.hidden_to_A(last_hidden)
@@ -458,7 +456,7 @@ def main():
     st.sidebar.markdown("""
     This app uses a GRU model trained on data from 1,624 patients to predict tacrolimus trough concentrations within the first week after a kidney transplant.
     The model considers patient demographics, lab results, previous dosing history and trough levels.
-    The predicted ratio is then used to determine the appropriate dose to achieve a predefined target tacrolimus trough concentration.
+    The predicted individual parameters are then used to determine the appropriate dose to achieve a predefined target tacrolimus trough concentration.
     """)
 
 
