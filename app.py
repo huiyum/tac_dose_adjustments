@@ -290,33 +290,33 @@ def main():
             )
 
             hct = st.number_input("Hematocrit (hct, %)*", min_value=15.0, max_value=80.0, value=28.0)
+
+            weight = st.number_input("Weight (kg)*", min_value=10.0, max_value=300.0, value=87.0, format="%.1f", step=0.1)
+            height = st.number_input("Height (cm)*", min_value=30.0, max_value=250.0, value=172.0, format="%.1f", step=0.1)
         
         with col2:
 
             prev_dose = st.number_input("Previous Dose (mg)*", min_value=0.5, max_value=50.0, value=6.0, format="%.1f", step=0.1)
             prev_c_whole = st.number_input("Previous Trough Concentration (ng/ml)*", min_value=0.5, max_value=150.0, value=8.0, format="%.1f", step=0.1)
-            hours_after_transplant = st.number_input("Time Post-transplant (hour)*", min_value=12.0, max_value=168.0, value=72.0, format="%.1f", step=0.1)
             
+            alb = st.number_input("Albumin (alb, g/dL)*", min_value=0.0, value=3.5, format="%.1f", step=0.1)
+            sex = st.selectbox("Sex*", options=['M', 'F'])
+
+            hours_after_transplant = st.number_input("Time Post-transplant (hour)*", min_value=12.0, max_value=168.0, value=72.0, format="%.1f", step=0.1)
+
+
         st.markdown("### Optional Fields")
-        col4, col5 = st.columns(2)
-        
-        with col4:
 
-            weight = st.number_input("Weight (kg)", min_value=10.0, max_value=300.0, value=87.0, format="%.1f", step=0.1)
-            height = st.number_input("Height (cm)", min_value=30.0, max_value=250.0, value=172.0, format="%.1f", step=0.1)
-            sex = st.selectbox("Sex", options=['M', 'F'])
+        col3, col4 = st.columns(2)
         
-        with col5:
-            alb = st.number_input("Albumin (alb, g/dL)", min_value=0.0, value=3.5, format="%.1f", step=0.1)
-            alt = st.number_input("ALT (U/L)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
-            ast = st.number_input("AST (U/L)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
-
-        col6, _ = st.columns(2)
-        
-        with col6:
+        with col3:
             creat = st.number_input("Creatinine (mg/dL)", min_value=0.0, value=3.5, format="%.2f", step=0.01)
             bsa = st.number_input("BSA (m²)", min_value=0.0, value=2.0, format="%.2f", step=0.01)
             bmi = st.number_input("BMI (kg/m²)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
+
+        with col4:
+            alt = st.number_input("ALT (U/L)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
+            ast = st.number_input("AST (U/L)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
         
         submitted = st.form_submit_button("Predict")
 
