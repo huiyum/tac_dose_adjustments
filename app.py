@@ -12,6 +12,21 @@ torch.set_grad_enabled(False)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+DRUG_INTERACTION_TEXT: str = """
+**Drug Interactions**
+
+i. **Aminoglycosides, amphotericin B, and non-steroidal anti-inflammatory drugs** (NSAIDs) may exacerbate the nephrotoxicity of tacrolimus.
+
+ii. **Drugs that inhibit cytochrome P450 3A4/5 (CYP3A4/5) and p-glycoprotein (P-gp)** decrease the metabolism of tacrolimus and/or increase the absorption of tacrolimus. Therefore, they will **increase blood levels** of tacrolimus. These medications include macrolide antibiotics (notably **erythromycin and clarithromycin**), azole antifungal agents (**fluconazole, itraconazole, ketoconazole, posaconazole, and voriconazole**), and some calcium channel blockers (**nicardipine, diltiazem, and verapamil**). Patients receiving these medications may need to have their tacrolimus dose **decreased**.
+
+iii. **Drugs that induce CYP3A4/5 and P-gp** increase the metabolism of tacrolimus and/or decrease the absorption of tacrolimus. Therefore, they will **decrease blood levels** of tacrolimus. These medications include **rifampin, carbamazepine, phenobarbital, phenytoin, and St. John's wort**. Patients receiving these medications will need to have their tacrolimus dose **increased**.
+
+iv. **Grapefruit and pomelo** inhibit CYP3A4 and P-gp and must be **avoided**. For other fruits, very limited information is available. Some studies suggest that the following fruits may also cause fluctuations in drug levels: **papaya, pomegranate, and star fruit**.
+
+v. **Sirolimus** may interfere with the absorption of tacrolimus or increase its clearance, which will **decrease the blood levels** of tacrolimus. This interaction appears more prominent at higher concentrations of sirolimus. Tacrolimus does not affect sirolimus levels.
+"""
+
+
 def preprocess(demo_df, preprocessing_info):
 
     df = demo_df.copy()
@@ -175,6 +190,13 @@ def solve_dose_linear(ke, A, dose_times_fixed, dose_values_fixed, added_dose_tim
     return x
 
 
+def display_interaction_checker():
+
+    with st.expander("Potential Drug-Drug Interactions"):
+
+        st.markdown(DRUG_INTERACTION_TEXT)
+
+
 class PKModel(nn.Module):
     
     def __init__(self, static_dim, seq_input_dim=3, hidden_dim=32):
@@ -259,6 +281,10 @@ def main():
     except FileNotFoundError:
         st.error("Model or preprocessing files not found. Please ensure 'gru/model.pt' and 'gru/preprocessing_info.pkl' are available.")
         st.stop()
+    
+    # === Drug Interaction Checker Section (Simplified) ===
+    display_interaction_checker()
+    st.markdown("---") # Separator line
 
     # Input form
     st.header("Patient Information")
@@ -310,7 +336,7 @@ def main():
         col3, col4 = st.columns(2)
         
         with col3:
-            creat = st.number_input("Creatinine (mg/dL)", min_value=0.0, value=3.5, format="%.2f", step=0.01)
+            creat = st.number_input("Creatinine (mg/dL)", min_value=0.0, value=1.5, format="%.2f", step=0.01)
             bsa = st.number_input("BSA (m²)", min_value=0.0, value=2.0, format="%.2f", step=0.01)
             bmi = st.number_input("BMI (kg/m²)", min_value=0.0, value=30.0, format="%.1f", step=0.1)
 
@@ -436,6 +462,25 @@ def main():
         
         # Display results
         st.header("Prediction Results")
+
+        # (1) RENAL WARNING MECHANISM
+        if creat > 2.0:
+
+            st.warning(
+                f"⚠️ **RENAL WARNING: Elevated Creatinine** ⚠️\n\n"
+                f"The patient's serum creatinine is **{creat:.2f} mg/dL**, "
+                f"which exceeds the common threshold of 2.0 mg/dL."
+            )
+
+        # (2) IMPLEMENT SAFETY ALERT
+        if recommended_dose > 1.5 * prev_dose:
+
+            st.error(
+                f"⚠️ **DOSE ALERT: Recommended Dose Change Exceeds 50%** ⚠️\n\n"
+                f"The **Recommended Dose ({recommended_dose:.2f} mg)** is more than "
+                f"1.5 times the **Previous Dose ({prev_dose:.1f} mg)**.\n\n"
+                f"Please **carefully review** this significant dose adjustment."
+            )
 
         # Display with red and bold formatting
         st.markdown(f"""
